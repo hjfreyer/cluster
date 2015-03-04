@@ -1,0 +1,24 @@
+kind: ServiceList
+apiVersion: v1beta1
+items:
+  - id: transmission-http
+    port: 80
+    containerPort: http
+
+    # just like the selector in the replication controller,
+    # but this time it identifies the set of pods to load balance
+    # traffic to.
+    selector:
+      name: transmission
+
+  - id: transmission-bt
+    port: 51413
+    containerPort: bt
+
+    publicIPs: ['172.17.8.102']
+
+    # just like the selector in the replication controller,
+    # but this time it identifies the set of pods to load balance
+    # traffic to.
+    selector:
+      name: transmission
