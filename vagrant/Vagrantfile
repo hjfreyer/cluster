@@ -181,8 +181,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       end
 
       kHost.vm.network :private_network, ip: "172.17.8.#{i+100}"
+      kHost.vm.network :public_network, :mac => ("08467AB9A8%02X" % i)
+
       # you can override this in synced_folders.yaml
       kHost.vm.synced_folder ".", "/vagrant", disabled: true
+      kHost.vm.synced_folder "/home/hjfreyer/node", "/home/core/host", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
 
       begin
         MOUNT_POINTS.each do |mount|
