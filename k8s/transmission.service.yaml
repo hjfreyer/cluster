@@ -15,7 +15,7 @@ items:
     port: 51413
     containerPort: bt
 
-    publicIPs: ['172.17.8.102']
+    publicIPs: ['192.168.1.4']
 
     # just like the selector in the replication controller,
     # but this time it identifies the set of pods to load balance

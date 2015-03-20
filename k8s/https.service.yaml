@@ -4,8 +4,8 @@ apiVersion: v1beta1
 id: https
 
 # the port that this service should serve on
-port: 8586
-publicIPs: ["172.17.8.102"]
+port: 443
+publicIPs: ["192.168.1.4"]
 
 # just like the selector in the replication controller,
 # but this time it identifies the set of pods to load balance
