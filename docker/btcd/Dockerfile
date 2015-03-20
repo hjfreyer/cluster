@@ -1,16 +1,10 @@
-FROM hjfreyer/base
+FROM golang
 
-# Consolidate
-RUN  apt-get install -y golang
-RUN  apt-get install -y git
-RUN  apt-get install -y mercurial
-
-ENV  GOPATH=/go
-RUN  mkdir -p $GOPATH
+ENV  BTCDIR=/btc
 
 RUN  go get github.com/btcsuite/btcd/...
 
-RUN  useradd btcserver -m
-USER btcserver
+RUN  useradd box -m
+USER box
 
-CMD  $GOPATH/bin/btcd
+ENTRYPOINT ["btcd", "-b=$BTCDIR"]
