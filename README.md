@@ -15,69 +15,29 @@ cluster setup with **[Vagrant](https://www.vagrantup.com)** (1.7.2+) and
  * some needed userland
  	* **kubectl** (required to manage your kubernetes cluster)
  	* **fleetctl** (optional for *debugging* **[fleet](http://github.com/coreos/fleet)**)
- 	* **etcdctl** (optional for *debugging* **[etcd](http://github.com/coreos/fleet)**)
 
-### fleetctl, etcdctl, kubectl installation notes
+### fleetctl
 
-- On **MacOS X** (and assuming you have [homebrew](http://brew.sh) already installed) run...
-
-   `brew install wget fleetctl etcdctl`
-
-- Download the *kubectl* binary into */usr/local/bin*, which should be (and most
-probably is) set in your shell's *$PATH*...
-
-   `./kubLocalSetup install`
-
-   You may specify a different *kubectl* version via the `KUBERNETES_VERSION`
-   environment variable (see [here](#customization) for details).
-
-- Set all needed environment variables in current shell...
-
-   `$(./kubLocalSetup shellinit)`
-
-some points to keep note too:
-
-- If you want to make that persistent across shells and reboots do instead...
-
-   `./kubLocalSetup shellinit >> ~/.bash_profile`
-- If you want to validate the environment variables we just set, run...
-
-   `./kubLocalSetup shellinit`
-- If you want to persist these changes to ```$PATH```, run...
-
-    `$(./kubLocalSetup shellinit) >> ~/.bashrc`
-
-## Master
-
-Current ```Vagrantfile``` will bootstrap one VM with everything it needs to become a Kubernetes _master_.
-```
-vagrant up master
-```
-
-Verify that ```fleet``` sees it
-```
-fleetctl list-machines
-```
-
-You should see something like
-```
-MACHINE		IP		METADATA
-dd0ee115...	172.17.8.101	role=master
-```
-
-## Minions
-
-Current ```Vagrantfile``` will bootstrap two VMs, by default, with everything needed to have two Kubernetes minions. You can
-change this by setting the **NUM_INSTANCES** environment variable (explained below).
+On **MacOS X** (and assuming you have [homebrew](http://brew.sh) already installed) run
 
 ```
-vagrant up node-01 node-02
+brew update
+brew install wget fleetctl
 ```
 
-Verify ```fleet``` again, just for the sake of it
+## Deploy Kubernetes
+
+Current ```Vagrantfile``` will bootstrap one VM with everything needed to become a Kubernetes _master_ and, by default, a couple VMs with everything needed to become Kubernetes minions. You can however change the number of minions by setting the **NUM_INSTANCES** environment variable (explained below).
 ```
-fleetctl list-machines
+vagrant up
 ```
+
+Verify if cluster is up & running
+```
+fleetctl --endpoint=http://172.17.8.101:4001 list-machines
+```
+
+NOTE: Once the installation process is complete, you should not have to provide the `--endpoint` argument.
 
 You should see something like
 ```
@@ -86,6 +46,28 @@ dd0ee115...	172.17.8.101	role=master
 74a8dc8c...	172.17.8.102	role=minion
 c93da9ff...	172.17.8.103    role=minion
 ```
+
+Kubernetes is ready. Now we now need to perform a few more steps, such as
+* Install `kubectl` binary into */usr/local/bin* - this is needed for interacting with Kubernetes
+* Set some environment variables
+* Set-up Kubernetes DNS integration
+
+Just run
+```
+./setup install
+source ~/.bash_profile
+```
+
+You may specify a different *kubectl* version via the `KUBERNETES_VERSION` environment variable (see [here](#customization) for details).
+
+## Clean-up
+
+```
+./setup uninstall
+vagrant destroy
+```
+
+If you've set `NUM_INSTANCES` or any other variable when deploying, please make sure you set it in `vagrant destroy` call above.
 
 ## Notes about hypervisors
 
@@ -152,7 +134,8 @@ Most aspects of your cluster setup can be customized with environment variables.
 
  - **KUBERNETES_VERSION** defines the specific kubernetes version being used.
 
-   Defaults to `0.13.1`.
+   Defaults to `0.13.2`.
+   Versions prior to `0.13.x` **won't work** with current cloud-config files.
 
 
 So, in order to start, say, a Kubernetes cluster with 3 minion nodes, 2GB of RAM and 2 vCPUs per node one just would do...
@@ -161,9 +144,9 @@ So, in order to start, say, a Kubernetes cluster with 3 minion nodes, 2GB of RAM
 NODE_MEM=2048 NODE_CPUS=2 NUM_INSTANCES=3 vagrant up
 ```
 
-Please do note that if you were using non default settings to startup your
+**Please do note** that if you were using non default settings to startup your
 cluster you *must* also use those exact settings when invoking
-`vagrant ssh` to communicate with any of the nodes in the cluster as otherwise
+`vagrant {up,ssh,status,destroy}` to communicate with any of the nodes in the cluster as otherwise
 things may not behave as you'd expect.
 
 ### Synced Folders
@@ -191,28 +174,16 @@ you which to mount the allowed syntax is...
 
 ## TL;DR
 
-### Install kubectl
-
 ```
-./kubLocalSetup install
-$(./kubLocalSetup shellinit)
-```
-
-### Set-up cluster
-
-```
-NODE_MEM=2048 NODE_CPUS=1 NUM_INSTANCES=2 vagrant up
+vagrant up
+./setup install
+source ~/.bash_profile
 ```
 
-This will start the `master` and 2 `minion` nodes. On them a local etcd
-cluster will be bootstrapped, Kubernetes binaries will be downloaded and
-all needed services started, as a *bonus* a docker mirror cache will be
-provisioned in the `master`, to speed up container provisioning. This
-can take a little bit depending on your Internet connection speed.
+This will start one `master` and two `minion` nodes, download Kubernetes binaries start all needed services.
+A Docker mirror cache will be provisioned in the `master`, to speed up container provisioning. This can take some time depending on your Internet connection speed.
 
-Please do note that, at any time, you can increase the number of running
-`minion` VMs by increasing the `NUM_INSTANCES` value in subsequent
-`vagrant up` invocations.
+Please do note that, at any time, you can change the number of `minions` by setting the `NUM_INSTANCES` value in subsequent `vagrant up` invocations.
 
 ### Usage
 
