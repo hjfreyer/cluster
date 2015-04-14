@@ -1,0 +1,25 @@
+apiVersion: v1beta3
+kind: Pod
+
+metadata:
+  name: transmission
+  labels:
+    name: transmission
+
+spec:
+  volumes:
+    - name: "host"
+      hostPath:
+        path: "/home/core/host/transmission"
+  containers:
+    - name: transmission
+      image: hjfreyer/transmission
+      ports:
+        - name: http
+          containerPort: 9091
+        - name: bt
+          containerPort: 51413
+
+      volumeMounts:
+        - mountPath: "/transmission"
+          name: "host"
