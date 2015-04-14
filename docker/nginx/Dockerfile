@@ -1,9 +1,12 @@
-FROM hjfreyer/base
+FROM debian:jessie
 
 EXPOSE 80
 EXPOSE 443
 
-RUN apt-get install -y nginx
+RUN apt-get update && \
+    apt-get install -y nginx
+
+RUN useradd -m steve
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
