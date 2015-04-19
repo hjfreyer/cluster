@@ -13,10 +13,7 @@ spec:
         path: "/home/core/host"
     - name: "certs"
       secret:
-        target:
-          name: sslcerts
-          namespace: default
-          kind: Secret
+        secretName: sslcerts
   containers:
     - name: nginx
       image: hjfreyer/nginx
