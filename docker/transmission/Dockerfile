@@ -1,10 +1,11 @@
 FROM debian:jessie
 
+RUN apt-get update
+
 EXPOSE 9091
 EXPOSE 51413
 
-RUN  apt-get update && \
-     apt-get install -y transmission-daemon
+RUN  apt-get install -y transmission-daemon
 
 RUN  useradd steve -m
 
