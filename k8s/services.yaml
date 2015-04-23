@@ -1,0 +1,41 @@
+kind: ServiceList
+apiVersion: v1beta3
+items:
+  - metadata:
+      name: transmission-http
+    spec:
+      ports:
+        - port: 80
+          targetPort: http
+
+          # just like the selector in the replication controller,
+          # but this time it identifies the set of pods to load balance
+          # traffic to.
+      selector:
+        name: transmission
+
+  - metadata:
+      name: transmission-bt
+    spec:
+      ports:
+        - port: 51413
+          targetPort: bt
+
+      selector:
+        name: transmission
+
+      publicIPs: ['192.168.1.4']
+
+  - metadata:
+      name: web
+    spec:
+      ports:
+        - name: http
+          port: 80
+        - name: https
+          port: 443
+
+      selector:
+        name: nginx
+
+      publicIPs: ['192.168.1.4']
