@@ -11,4 +11,4 @@ RUN  useradd steve -m
 
 USER steve
 
-CMD  ["/usr/bin/transmission-daemon", "-f", "--config-dir=/transmission/config/", "--download-dir=/transmission/data/"]
+CMD  ["/usr/bin/transmission-daemon", "-f", "--config-dir=/transmission/config/", "--download-dir=/transmission/data/", "--log-info"]
