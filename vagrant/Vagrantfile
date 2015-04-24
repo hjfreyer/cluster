@@ -244,7 +244,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       end
 
       kHost.vm.network :private_network, ip: "#{BASE_IP_ADDR}.#{i+100}"      
-      kHost.vm.network :public_network, :mac => ("08467AB9A8%02X" % i)
+      kHost.vm.network :public_network, :mac => ("08467AB9A8%02X" % i), bridge: 'enp1s0'
 
       # you can override this in synced_folders.yaml
       kHost.vm.synced_folder ".", "/vagrant", disabled: true
