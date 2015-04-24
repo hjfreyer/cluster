@@ -1,28 +1,35 @@
 apiVersion: v1beta3
-kind: Pod
+kind: ReplicationController
 
 metadata:
   name: nginx
-  labels:
-    name: nginx
 
 spec:
-  volumes:
-    - name: "host"
-      hostPath:
-        path: "/home/core/host"
-    - name: "certs"
-      secret:
-        secretName: sslcerts
-  containers:
-    - name: nginx
-      image: hjfreyer/nginx
-      ports:
-        - containerPort: 80
-        - containerPort: 443
+  replicas: 1
+  selector:
+    name: nginx
 
-      volumeMounts:
-        - mountPath: "/host"
-          name: "host"
-        - mountPath: "/certs"
-          name: "certs"
+  template:
+    metadata:
+      labels:
+        name: nginx
+    spec:
+      volumes:
+        - name: "host"
+          hostPath:
+            path: "/home/core/host"
+        - name: "certs"
+          secret:
+            secretName: sslcerts
+      containers:
+        - name: nginx
+          image: hjfreyer/nginx
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+
+          volumeMounts:
+            - mountPath: "/host"
+              name: "host"
+            - mountPath: "/certs"
+              name: "certs"
