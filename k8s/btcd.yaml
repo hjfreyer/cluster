@@ -1,20 +1,30 @@
-apiVersion: v1beta1
-kind: Pod
-id: btcd
-desiredState:
-  manifest:
-    version: v1beta1
-    id: btcd
-    containers:
-      - name: btcd
-        image: hjfreyer/btcd
-        volumeMounts:
-            # name must match the volume name below
-          - name: blockchain
-            # mount path within the container
-            mountPath: /btc/
-    volumes:
-      - name: blockchain
-        source:
-          hostDir:
-            path: "/home/core/host/blockchain"
+apiVersion: v1beta3
+kind: ReplicationController
+
+metadata:
+  name: btcd
+
+spec:
+  replicas: 1
+  selector:
+    name: btcd
+
+  template:
+    metadata:
+      labels:
+        name: btcd
+    spec:
+      volumes:
+        - name: blockchain
+          hostPath:
+            path: /home/core/host/blockchain
+      containers:
+        - name: btcd
+          image: hjfreyer/btcd:latest
+          ports:
+            - name: rpc
+              containerPort: 8334
+          volumeMounts:
+            - name: blockchain
+              # mount path within the container
+              mountPath: /btc/

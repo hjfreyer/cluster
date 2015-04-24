@@ -39,3 +39,15 @@ items:
         name: nginx
 
       publicIPs: ['192.168.1.4']
+
+  - metadata:
+      name: btcd
+    spec:
+      ports:
+        - name: rpc
+          port: 8334
+
+      selector:
+        name: btcd
+
+      publicIPs: ['192.168.1.4']
