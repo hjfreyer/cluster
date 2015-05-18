@@ -22,6 +22,10 @@ brew update
 brew install wget
 ```
 
+### Windows
+
+The [vagrant-winnfsd plugin](https://github.com/GM-Alex/vagrant-winnfsd) will be installed in order to enable NFS shares.
+
 ## Deploy Kubernetes
 
 Current ```Vagrantfile``` will bootstrap one VM with everything needed to become a Kubernetes _master_ and, by default, a couple VMs with everything needed to become Kubernetes minions.
@@ -31,6 +35,8 @@ You can change the number of minions and/or the Kubernetes version by setting en
 vagrant up
 ```
 
+### Linux or MacOS host
+
 Kubernetes cluster is ready. but you need to set-up some environment variables that we have already provisioned for you. In the current terminal windo, run:
 
 ```
@@ -38,6 +44,15 @@ source ~/.bash_profile
 ```
 
 New terminal windows will have this set for you.
+
+### Windows host
+
+On Windows systems, `kubectl` is installed on the `master` node, in the ```/opt/bin``` directory. To manage your Kubernetes cluster, `ssh` into the `master` node and run `kubectl` from there.
+
+```
+vagrant ssh master
+kubectl cluster-info
+```
 
 ## Clean-up
 
@@ -116,8 +131,8 @@ Most aspects of your cluster setup can be customized with environment variables.
 
  - **KUBERNETES_VERSION** defines the specific kubernetes version being used.
 
-   Defaults to `0.15.0`.
-   Versions prior to `0.15.0` **won't work** with current cloud-config files.
+   Defaults to `0.17.0`.
+   Versions prior to `0.17.0` **won't work** with current cloud-config files.
 
  - **CLOUD_PROVIDER** defines the specific cloud provider being used. This is useful, for instance, if you're relying on kubernetes to set load-balancers for your services.
 
