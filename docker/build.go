@@ -10,8 +10,9 @@ import (
 var pull = flag.Bool("pull", false, "Whether to pull new base images")
 var push = flag.Bool("push", false, "Whether to push the built versions")
 
-var packages = []string{
+var defaultPackages = []string{
 	"btcd",
+	"btcd2",
 	"transmission",
 	"nginx",
 }
@@ -45,6 +46,11 @@ func build(name string) error {
 
 func main() {
 	flag.Parse()
+	packages := defaultPackages
+	if len(flag.Args()) > 0 {
+		packages = flag.Args()
+	}
+
 	if *pull {
 		for _, p := range bases {
 			if err := doPull(p); err != nil {
