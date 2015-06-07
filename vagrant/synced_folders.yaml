@@ -6,7 +6,7 @@
 #   disabled: false
 
 - name: core
-  source: /home/hjfreyer/node
+  source: /data/hjfreyer/node
   destination: /home/core/host
   nfs: true
   mount_options: 'nolock,vers=3,udp'
