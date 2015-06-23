@@ -63,18 +63,18 @@ SSL_FILE = File.join(File.dirname(__FILE__), "kube-serviceaccount.key")
 USE_DOCKERCFG = ENV['USE_DOCKERCFG'] || false
 DOCKERCFG = File.expand_path(ENV['DOCKERCFG'] || "~/.dockercfg")
 
-KUBERNETES_VERSION = ENV['KUBERNETES_VERSION'] || '0.18.1'
+KUBERNETES_VERSION = ENV['KUBERNETES_VERSION'] || '0.19.3'
 
 CHANNEL = ENV['CHANNEL'] || 'alpha'
-if CHANNEL != 'alpha'
-  puts "============================================================================="
-  puts "As this is a fastly evolving technology CoreOS' alpha channel is the only one"
-  puts "expected to behave reliably. While one can invoke the beta or stable channels"
-  puts "please be aware that your mileage may vary a whole lot."
-  puts "So, before submitting a bug, in this project, or upstreams (either kubernetes"
-  puts "or CoreOS) please make sure it (also) happens in the (default) alpha channel."
-  puts "============================================================================="
-end
+#if CHANNEL != 'alpha'
+#  puts "============================================================================="
+#  puts "As this is a fastly evolving technology CoreOS' alpha channel is the only one"
+#  puts "expected to behave reliably. While one can invoke the beta or stable channels"
+#  puts "please be aware that your mileage may vary a whole lot."
+#  puts "So, before submitting a bug, in this project, or upstreams (either kubernetes"
+#  puts "or CoreOS) please make sure it (also) happens in the (default) alpha channel."
+#  puts "============================================================================="
+#end
 
 COREOS_VERSION = ENV['COREOS_VERSION'] || 'latest'
 upstream = "http://#{CHANNEL}.release.core-os.net/amd64-usr/#{COREOS_VERSION}"
