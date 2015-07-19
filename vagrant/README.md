@@ -111,13 +111,13 @@ Most aspects of your cluster setup can be customized with environment variables.
    Defaults to **false**. Only use this if you *really* know what you are doing.
  - **MASTER_MEM** sets the master's VM memory.
 
-   Defaults to **512** (in MB)
+   Defaults to **1024** (in MB)
  - **MASTER_CPUS** sets the number os vCPUs to be used by the master's VM.
 
    Defaults to **1**.
  - **NODE_MEM** sets the worker nodes' (aka minions in Kubernetes lingo) VM memory.
 
-   Defaults to **1024** (in MB)
+   Defaults to **2048** (in MB)
  - **NODE_CPUS** sets the number os vCPUs to be used by the minions's VMs.
 
    Defaults to **1**.
@@ -129,9 +129,11 @@ Most aspects of your cluster setup can be customized with environment variables.
    by running `docker login <registry>.<domain>`. All nodes will get it automatically,
    at 'vagrant up', given any modification or update to that file.
 
+ - **DOCKER_OPTIONS** sets the additional `DOCKER_OPTS` for docker service on both master and the nodes. Useful for adding params such as `--insecure-registry`.
+
  - **KUBERNETES_VERSION** defines the specific kubernetes version being used.
 
-   Defaults to `0.19.3`.
+   Defaults to `0.21.4`.
    Versions prior to `0.18.0` **won't work** with current cloud-config files.
 
  - **CLOUD_PROVIDER** defines the specific cloud provider being used. This is useful, for instance, if you're relying on kubernetes to set load-balancers for your services.
@@ -139,10 +141,10 @@ Most aspects of your cluster setup can be customized with environment variables.
    [Possible values are `gce`, `gke`, `aws`, `azure`, `vagrant`, `vsphere`, `libvirt-coreos` and `juju`](https://github.com/GoogleCloudPlatform/kubernetes/blob/master/cluster/kube-env.sh#L17). ~~Defaults to `vagrant`,~~ because of https://github.com/GoogleCloudPlatform/kubernetes/issues/9049.
 
 
-So, in order to start, say, a Kubernetes cluster with 3 minion nodes, 2GB of RAM and 2 vCPUs per node one just would do...
+So, in order to start, say, a Kubernetes cluster with 3 minion nodes, 4GB of RAM and 2 vCPUs per node one just would do...
 
 ```
-NODE_MEM=2048 NODE_CPUS=2 NUM_INSTANCES=3 vagrant up
+NODE_MEM=4096 NODE_CPUS=2 NUM_INSTANCES=3 vagrant up
 ```
 
 **Please do note** that if you were using non default settings to startup your
