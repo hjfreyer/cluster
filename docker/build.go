@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"sync"
 )
 
 var pull = flag.Bool("pull", false, "Whether to pull new base images")
@@ -45,6 +44,26 @@ func doBuildAndPush(name string) error {
 	return nil
 }
 
+type Task func() error
+
+func doAll(tasks []Task) error {
+	ch := make(chan error)
+	for _, task := range tasks {
+		task := task
+		go func() {
+			ch <- task()
+		}()
+	}
+
+	var result error
+	for _ = range tasks {
+		if err := <-ch; err != nil {
+			result = err
+		}
+	}
+	return result
+}
+
 func main() {
 	flag.Parse()
 	packages := defaultPackages
@@ -53,30 +72,26 @@ func main() {
 	}
 
 	if *pull {
-		var pullGroup sync.WaitGroup
-		pullGroup.Add(len(bases))
+		var pulls []Task
 		for _, p := range bases {
 			p := p
-			go func() {
-				if err := doPull(p); err != nil {
-					log.Fatal(err)
-				}
-				pullGroup.Done()
-			}()
+			pulls = append(pulls, func() error {
+				return doPull(p)
+			})
 		}
-		pullGroup.Wait()
+		if err := doAll(pulls); err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	var buildGroup sync.WaitGroup
-	buildGroup.Add(len(packages))
+	var builds []Task
 	for _, p := range packages {
 		p := p
-		go func() {
-			if err := doBuildAndPush(p); err != nil {
-				log.Fatal(err)
-			}
-			buildGroup.Done()
-		}()
+		builds = append(builds, func() error {
+			return doBuildAndPush(p)
+		})
 	}
-	buildGroup.Wait()
+	if err := doAll(builds); err != nil {
+		log.Fatal(err)
+	}
 }
