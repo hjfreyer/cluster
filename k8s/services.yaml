@@ -1,5 +1,5 @@
 kind: ServiceList
-apiVersion: v1beta3
+apiVersion: v1
 items:
   - metadata:
       name: transmission-http
@@ -20,11 +20,12 @@ items:
       ports:
         - port: 51413
           targetPort: bt
+          nodePort: 30003
 
       selector:
         name: transmission
 
-      publicIPs: ['192.168.2.2']
+      type: NodePort
 
   - metadata:
       name: web
@@ -32,13 +33,15 @@ items:
       ports:
         - name: http
           port: 80
+          nodePort: 30001
         - name: https
           port: 443
+          nodePort: 30002
 
       selector:
         name: nginx
 
-      publicIPs: ['192.168.2.2']
+      type: NodePort
 
   - metadata:
       name: btcd
@@ -50,4 +53,3 @@ items:
       selector:
         name: btcd
 
-      publicIPs: ['192.168.2.2']
