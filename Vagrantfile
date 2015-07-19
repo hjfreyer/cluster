@@ -63,7 +63,9 @@ SSL_FILE = File.join(File.dirname(__FILE__), "kube-serviceaccount.key")
 USE_DOCKERCFG = ENV['USE_DOCKERCFG'] || false
 DOCKERCFG = File.expand_path(ENV['DOCKERCFG'] || "~/.dockercfg")
 
-KUBERNETES_VERSION = ENV['KUBERNETES_VERSION'] || '0.19.3'
+DOCKER_OPTIONS = ENV['DOCKER_OPTIONS'] || ''
+
+KUBERNETES_VERSION = ENV['KUBERNETES_VERSION'] || '0.21.4'
 
 CHANNEL = ENV['CHANNEL'] || 'alpha'
 #if CHANNEL != 'alpha'
@@ -207,7 +209,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         info "'vagrant suspend' and 'vagrant resume' are disabled."
         info "- please do use 'vagrant halt' and 'vagrant up' instead."
       end
-      
+
       config.trigger.instead_of :reload do
         exec "vagrant halt && vagrant up"
         exit
@@ -270,7 +272,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             break if res.is_a? Net::HTTPSuccess or j >= 50
           end
 
-          res, uri.path = nil, '/api/v1beta1/replicationControllers/kube-dns'
+          res, uri.path = nil, '/api/v1/namespaces/default/replicationControllers/kube-dns'
           begin
             res = Net::HTTP.get_response(uri)
           rescue
@@ -283,7 +285,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             end
           end
 
-          res, uri.path = nil, '/api/v1beta1/services/kube-dns'
+          res, uri.path = nil, '/api/v1/namespaces/default/services/kube-dns'
           begin
             res = Net::HTTP.get_response(uri)
           rescue
@@ -364,6 +366,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           vb.gui = GUI
         end
       end
+      ["vmware_fusion", "vmware_workstation"].each do |h|
+        kHost.vm.provider h do |v|
+          v.vmx["memsize"] = memory
+          v.vmx["numvcpus"] = cpus
+        end
+      end
       ["parallels", "virtualbox"].each do |h|
         kHost.vm.provider h do |n|
           n.memory = memory
@@ -430,6 +438,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         kHost.vm.provision :shell, :privileged => true,
         inline: <<-EOF
           sed -i"*" "/__PROXY_LINE__/d" /tmp/vagrantfile-user-data
+          sed -i"*" "s,__DOCKER_OPTIONS__,#{DOCKER_OPTIONS},g" /tmp/vagrantfile-user-data
           sed -i"*" "s,__RELEASE__,v#{KUBERNETES_VERSION},g" /tmp/vagrantfile-user-data
           sed -i"*" "s,__CHANNEL__,v#{CHANNEL},g" /tmp/vagrantfile-user-data
           sed -i"*" "s,__NAME__,#{hostname},g" /tmp/vagrantfile-user-data
@@ -437,8 +446,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           sed -i"*" "s|__MASTER_IP__|#{MASTER_IP}|g" /tmp/vagrantfile-user-data
           sed -i"*" "s|__DNS_DOMAIN__|#{DNS_DOMAIN}|g" /tmp/vagrantfile-user-data
           sed -i"*" "s|__ETCD_SEED_CLUSTER__|#{ETCD_SEED_CLUSTER}|g" /tmp/vagrantfile-user-data
-          sed -i"*" "s|__NODE_CPUS__|#{NODE_CPUS}|g" /tmp/vagrantfile-user-data
-          sed -i"*" "s|__NODE_MEM__|#{NODE_MEM}|g" /tmp/vagrantfile-user-data
           mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/
         EOF
       end
