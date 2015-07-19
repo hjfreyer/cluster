@@ -20,7 +20,7 @@ spec:
             secretName: ddclient-creds
       containers:
         - name: ddclient
-          image: hjfreyer/ddclient
+          image: hjfreyer/ddclient:latest
           volumeMounts:
             - mountPath: "/creds"
               name: creds

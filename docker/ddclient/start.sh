@@ -1,12 +1,12 @@
-#!/bin/bash -e
+#!/bin/bash
 
-echo "
-protocol=dyndns2
-use=web
-server=domains.google.com
-ssl=yes
-login=$(cat /creds/username)
-password=$(cat /creds/password)
-h.hjfreyer.com" > /etc/ddclient.conf
+USER=$(cat /creds/username)
+PASS=$(cat /creds/password)
+HOST=h.hjfreyer.com
 
-exec ddclient --daemon 300 --foreground
+while true
+do
+    curl "https://$USER:$PASS@domains.google.com/nic/update?hostname=$HOST"
+    sleep 3600
+done
+

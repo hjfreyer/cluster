@@ -1,10 +1,9 @@
 FROM debian:jessie
 
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y ddclient
+RUN apt-get update && apt-get install -y curl
 
 VOLUME /creds
 
-ADD start.sh /
+ADD start.sh /bin/
 
-CMD /start.sh 
+CMD start.sh 
