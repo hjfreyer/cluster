@@ -3,7 +3,7 @@ FROM golang
 EXPOSE 8333
 EXPOSE 8334
 
-ENV  BTCDIR=/btc
+ENV  BTCDIR /btc
 
 RUN  go get github.com/btcsuite/btcd/...
 
