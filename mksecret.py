@@ -24,9 +24,9 @@ for fp in os.listdir(path):
         secrets[fp] = f.read()
 
 output = dict(
-    apiVersion='v1beta1',
+    apiVersion='v1',
     kind='Secret',
-    id=name,
+    metadata=dict(name=name),
     data=dict())
 
 for k, v in secrets.iteritems():
