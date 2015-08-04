@@ -29,7 +29,7 @@ The [vagrant-winnfsd plugin](https://github.com/GM-Alex/vagrant-winnfsd) will be
 ## Deploy Kubernetes
 
 Current ```Vagrantfile``` will bootstrap one VM with everything needed to become a Kubernetes _master_ and, by default, a couple VMs with everything needed to become Kubernetes minions.
-You can change the number of minions and/or the Kubernetes version by setting environment variables **NUM_INSTANCES** and **KUBERNETES_VERSION**, respectively. [You can find more details below](#customization).
+You can change the number of minions and/or the Kubernetes version by setting environment variables **NUM_NODES** and **KUBERNETES_VERSION**, respectively. [You can find more details below](#customization).
 
 ```
 vagrant up
@@ -60,10 +60,10 @@ kubectl cluster-info
 vagrant destroy
 ```
 
-If you've set `NUM_INSTANCES` or any other variable when deploying, please make sure you set it in `vagrant destroy` call above, like:
+If you've set `NUM_NODES` or any other variable when deploying, please make sure you set it in `vagrant destroy` call above, like:
 
 ```
-NUM_INSTANCES=3 vagrant destroy
+NUM_NODES=3 vagrant destroy
 ```
 
 ## Notes about hypervisors
@@ -94,7 +94,7 @@ If you want to use Docker private repositories look for **DOCKERCFG** bellow.
 ### Environment variables
 Most aspects of your cluster setup can be customized with environment variables. Right now the available ones are:
 
- - **NUM_INSTANCES** sets the number of nodes (minions).
+ - **NUM_NODES** sets the number of nodes (minions).
 
    Defaults to **2**.
  - **CHANNEL** sets the default CoreOS channel to be used in the VMs.
@@ -133,8 +133,8 @@ Most aspects of your cluster setup can be customized with environment variables.
 
  - **KUBERNETES_VERSION** defines the specific kubernetes version being used.
 
-   Defaults to `0.21.4`.
-   Versions prior to `0.18.0` **won't work** with current cloud-config files.
+   Defaults to `1.0.1`.
+   Versions prior to `0.21.4` **won't work** with current cloud-config files.
 
  - **CLOUD_PROVIDER** defines the specific cloud provider being used. This is useful, for instance, if you're relying on kubernetes to set load-balancers for your services.
 
@@ -144,7 +144,7 @@ Most aspects of your cluster setup can be customized with environment variables.
 So, in order to start, say, a Kubernetes cluster with 3 minion nodes, 4GB of RAM and 2 vCPUs per node one just would do...
 
 ```
-NODE_MEM=4096 NODE_CPUS=2 NUM_INSTANCES=3 vagrant up
+NODE_MEM=4096 NODE_CPUS=2 NUM_NODES=3 vagrant up
 ```
 
 **Please do note** that if you were using non default settings to startup your
@@ -193,7 +193,7 @@ source ~/.bash_profile
 This will start one `master` and two `minion` nodes, download Kubernetes binaries start all needed services.
 A Docker mirror cache will be provisioned in the `master`, to speed up container provisioning. This can take some time depending on your Internet connection speed.
 
-Please do note that, at any time, you can change the number of `minions` by setting the `NUM_INSTANCES` value in subsequent `vagrant up` invocations.
+Please do note that, at any time, you can change the number of `minions` by setting the `NUM_NODES` value in subsequent `vagrant up` invocations.
 
 ### Usage
 
@@ -206,6 +206,18 @@ For a more elaborate scenario [here]
 (https://github.com/pires/kubernetes-elasticsearch-cluster) you'll find all
 you need to get a scalable Elasticsearch cluster on top of Kubernetes in no
 time.
+
+## Troubleshooting
+
+#### I'm getting errors while waiting for Kubernetes master to become ready on a MacOS host!
+
+If you see something like this in the log:
+```
+==> master: Waiting for Kubernetes master to become ready...
+error: unable to load file "temp/dns-controller.yaml": unable to connect to a server to handle "replicationcontrollers": couldn't read version from server: Get https://10.245.1.2/api: dial tcp 10.245.1.2:443: i/o timeout
+error: no objects passed to create
+```
+You probably have a pre-existing Kubernetes config file on your system at `~/.kube/config`. Delete or move that file and try again.
 
 ## Licensing
 
