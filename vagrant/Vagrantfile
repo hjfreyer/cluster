@@ -65,7 +65,7 @@ DOCKERCFG = File.expand_path(ENV['DOCKERCFG'] || "~/.dockercfg")
 
 DOCKER_OPTIONS = ENV['DOCKER_OPTIONS'] || ''
 
-KUBERNETES_VERSION = ENV['KUBERNETES_VERSION'] || '0.21.4'
+KUBERNETES_VERSION = ENV['KUBERNETES_VERSION'] || '1.0.1'
 
 CHANNEL = ENV['CHANNEL'] || 'alpha'
 #if CHANNEL != 'alpha'
@@ -87,7 +87,7 @@ if COREOS_VERSION == "latest"
     open(url).read().scan(/COREOS_VERSION=.*/)[0].gsub('COREOS_VERSION=', ''))
 end
 
-NUM_INSTANCES = ENV['NUM_INSTANCES'] || 2
+NUM_NODES = ENV['NUM_NODES'] || 2
 
 MASTER_MEM = ENV['MASTER_MEM'] || 1024
 MASTER_CPUS = ENV['MASTER_CPUS'] || 1
@@ -117,16 +117,6 @@ validCloudProviders = [ 'gce', 'gke', 'aws', 'azure', 'vagrant', 'vsphere',
   'libvirt-coreos', 'juju' ]
 Object.redefine_const(:CLOUD_PROVIDER,
   '') unless validCloudProviders.include?(CLOUD_PROVIDER)
-
-(1..(NUM_INSTANCES.to_i + 1)).each do |i|
-  case i
-  when 1
-    hostname = "master"
-    ETCD_SEED_CLUSTER = "#{hostname}=http://#{BASE_IP_ADDR}.#{i+100}:2380"
-  else
-    hostname = ",node-%02d" % (i - 1)
-  end
-end
 
 # Read YAML file with mountpoint details
 MOUNT_POINTS = YAML::load_file('synced_folders.yaml')
@@ -174,7 +164,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # most http tools, like wget and curl do not undestand IP range
     # thus adding each node one by one to no_proxy
     no_proxies = NO_PROXY.split(",")
-    (1..(NUM_INSTANCES.to_i + 1)).each do |i|
+    (1..(NUM_NODES.to_i + 1)).each do |i|
       vm_ip_addr = "#{BASE_IP_ADDR}.#{i+100}"
       Object.redefine_const(:NO_PROXY,
         "#{NO_PROXY},#{vm_ip_addr}") unless no_proxies.include?(vm_ip_addr)
@@ -185,9 +175,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.proxy.enabled = { docker: false }
   end
 
-  (1..(NUM_INSTANCES.to_i + 1)).each do |i|
+  (1..(NUM_NODES.to_i + 1)).each do |i|
     if i == 1
       hostname = "master"
+      ETCD_SEED_CLUSTER = "#{hostname}=http://#{BASE_IP_ADDR}.#{i+100}:2380"
       cfg = MASTER_YAML
       memory = MASTER_MEM
       cpus = MASTER_CPUS
