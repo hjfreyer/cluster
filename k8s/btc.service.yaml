@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: bitcoin
+spec:
+  ports:
+    - name: rpc
+      port: 8332
+      nodePort: 30332
+    - name: p2p
+      port: 8333
+      nodePort: 30333
+  selector:
+    name: btc
+  type: NodePort
+  
+

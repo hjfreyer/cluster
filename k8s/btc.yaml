@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ReplicationController
+
+metadata:
+  name: btc
+
+spec:
+  replicas: 1
+  selector:
+    name: btc
+
+  template:
+    metadata:
+      labels:
+        name: btc
+    spec:
+      volumes:
+        - name: datadir
+          hostPath:
+            path: /home/core/host/btc
+      containers:
+        - name: bitcoind
+          image: hjfreyer/btc:latest
+          ports:
+            - name: rpc
+              containerPort: 8332
+            - name: p2p
+              containerPort: 8333
+          volumeMounts:
+            - name: datadir
+              # mount path within the container
+              mountPath: /datadir
