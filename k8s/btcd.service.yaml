@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: btcd
+spec:
+  ports:
+    - name: rpc
+      port: 8334
+      nodePort: 31334
+    - name: p2p
+      port: 8333
+      nodePort: 31333
+  selector:
+    name: btcd
+  type: NodePort
+  

@@ -42,14 +42,3 @@ items:
         name: nginx
 
       type: NodePort
-
-  - metadata:
-      name: btcd
-    spec:
-      ports:
-        - name: rpc
-          port: 8334
-
-      selector:
-        name: btcd
-
