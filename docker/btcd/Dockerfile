@@ -15,4 +15,4 @@ ENV GOPATH /go
 
 RUN  go get github.com/btcsuite/btcd/...
 
-CMD ["btcd", "-b=$BTCDIR", "--rpcuser=user", "--rpcpass=pass", "--rpclisten=:8334"]
+CMD ["/go/bin/btcd", "-b=$BTCDIR", "--rpcuser=user", "--rpcpass=pass", "--rpclisten=:8334"]
