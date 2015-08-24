@@ -1,6 +1,7 @@
 package main
 
 import (
+       "fmt"
 	"flag"
 	"log"
 	"os"
@@ -8,17 +9,19 @@ import (
 )
 
 var pull = flag.Bool("pull", false, "Whether to pull new base images")
+var cache = flag.Bool("cache", true, "Whether to use the docker cache for builds")
 var push = flag.Bool("push", false, "Whether to push the built versions")
 
 var defaultPackages = []string{
+	"btc",
 	"btcd",
-	"btcd2",
-	"transmission",
+	"ddclient",
 	"nginx",
+	"transmission",
 }
 var bases = []string{
 	"debian:jessie",
-	"golang",
+	"debian:sid",
 }
 
 func doPull(name string) error {
@@ -29,7 +32,7 @@ func doPull(name string) error {
 }
 
 func doBuildAndPush(name string) error {
-	cmd := exec.Command("docker", "build", "-t", "hjfreyer/"+name, name)
+	cmd := exec.Command("docker", "build", fmt.Sprintf("--no-cache=%t", !*cache), "-t", "hjfreyer/"+name, name)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
