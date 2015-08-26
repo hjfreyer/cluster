@@ -22,6 +22,8 @@ spec:
         - name: btcd
           image: hjfreyer/btcd:latest
           ports:
+            - name: p2p
+              containerPort: 8333
             - name: rpc
               containerPort: 8334
           volumeMounts:
