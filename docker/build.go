@@ -1,8 +1,8 @@
 package main
 
 import (
-       "fmt"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -39,7 +39,7 @@ func doBuildAndPush(name string) error {
 		return err
 	}
 	if *push {
-		cmd := exec.Command("docker", "push", "hjfreyer/"+name)
+		cmd := exec.Command("docker", "push", "hjfreyer/"+name+":latest")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		return cmd.Run()
