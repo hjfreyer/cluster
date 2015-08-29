@@ -1,224 +1,118 @@
-# kubernetes-vagrant-coreos-cluster
-Turnkey **[Kubernetes](https://github.com/GoogleCloudPlatform/kubernetes)**
-cluster setup with **[Vagrant](https://www.vagrantup.com)** (1.7.2+) and
-**[CoreOS](https://coreos.com)**.
+# CoreOS Vagrant
 
-####If you're lazy, or in a hurry, jump to the [TL;DR](#tldr) section.
+This repo provides a template Vagrantfile to create a CoreOS virtual machine using the VirtualBox software hypervisor.
+After setup is complete you will have a single CoreOS virtual machine running on your local machine.
 
-## Pre-requisites
+## Streamlined setup
 
- * **[Vagrant](https://www.vagrantup.com)**
- * a supported Vagrant hypervisor
- 	* **[Virtualbox](https://www.virtualbox.org)** (the default)
- 	* **[Parallels Desktop](http://www.parallels.com/eu/products/desktop/)**
- 	* **[VMware Fusion](http://www.vmware.com/products/fusion)** or **[VMware Workstation](http://www.vmware.com/products/workstation)**
+1) Install dependencies
 
-### MacOS X
+* [VirtualBox][virtualbox] 4.3.10 or greater.
+* [Vagrant][vagrant] 1.6 or greater.
 
-On **MacOS X** (and assuming you have [homebrew](http://brew.sh) already installed) run
+2) Clone this project and get it running!
 
 ```
-brew update
-brew install wget
+git clone https://github.com/coreos/coreos-vagrant/
+cd coreos-vagrant
 ```
 
-### Windows
+3) Startup and SSH
 
-The [vagrant-winnfsd plugin](https://github.com/GM-Alex/vagrant-winnfsd) will be installed in order to enable NFS shares.
+There are two "providers" for Vagrant with slightly different instructions.
+Follow one of the following two options:
 
-## Deploy Kubernetes
+**VirtualBox Provider**
 
-Current ```Vagrantfile``` will bootstrap one VM with everything needed to become a Kubernetes _master_ and, by default, a couple VMs with everything needed to become Kubernetes minions.
-You can change the number of minions and/or the Kubernetes version by setting environment variables **NUM_NODES** and **KUBERNETES_VERSION**, respectively. [You can find more details below](#customization).
+The VirtualBox provider is the default Vagrant provider. Use this if you are unsure.
 
 ```
 vagrant up
+vagrant ssh
 ```
 
-### Linux or MacOS host
+**VMware Provider**
 
-Kubernetes cluster is ready. but you need to set-up some environment variables that we have already provisioned for you. In the current terminal window, run:
+The VMware provider is a commercial addon from Hashicorp that offers better stability and speed.
+If you use this provider follow these instructions.
 
+VMware Fusion:
 ```
-source ~/.bash_profile
-```
-
-New terminal windows will have this set for you.
-
-### Windows host
-
-On Windows systems, `kubectl` is installed on the `master` node, in the ```/opt/bin``` directory. To manage your Kubernetes cluster, `ssh` into the `master` node and run `kubectl` from there.
-
-```
-vagrant ssh master
-kubectl cluster-info
+vagrant up --provider vmware_fusion
+vagrant ssh
 ```
 
-## Clean-up
-
+VMware Workstation:
 ```
-vagrant destroy
-```
-
-If you've set `NUM_NODES` or any other variable when deploying, please make sure you set it in `vagrant destroy` call above, like:
-
-```
-NUM_NODES=3 vagrant destroy
+vagrant up --provider vmware_workstation
+vagrant ssh
 ```
 
-## Notes about hypervisors
+``vagrant up`` triggers vagrant to download the CoreOS image (if necessary) and (re)launch the instance
 
-### Virtualbox
+``vagrant ssh`` connects you to the virtual machine.
+Configuration is stored in the directory so you can always return to this machine by executing vagrant ssh from the directory where the Vagrantfile was located.
 
-**VirtualBox** is the default hypervisor, and you'll probably need to disable its DHCP server
-```
-VBoxManage dhcpserver remove --netname HostInterfaceNetworking-vboxnet0
-```
+4) Get started [using CoreOS][using-coreos]
 
-### Parallels
+[virtualbox]: https://www.virtualbox.org/
+[vagrant]: https://www.vagrantup.com/downloads.html
+[using-coreos]: http://coreos.com/docs/using-coreos/
 
-If you are using **Parallels Desktop**, you need to install **[vagrant-parallels](http://parallels.github.io/vagrant-parallels/docs/)** provider 
-```
-vagrant plugin install vagrant-parallels
-```
-Then just add ```--provider parallels``` to the ```vagrant up``` invocations above.
+#### Shared Folder Setup
 
-### VMware
-If you are using one of the **VMware** hypervisors you must **[buy](http://www.vagrantup.com/vmware)** the matching  provider and, depending on your case, just add either ```--provider vmware-fusion``` or ```--provider vmware-workstation``` to the ```vagrant up``` invocations above.
-
-## Private Docker Repositories
-
-If you want to use Docker private repositories look for **DOCKERCFG** bellow.
-
-## Customization
-### Environment variables
-Most aspects of your cluster setup can be customized with environment variables. Right now the available ones are:
-
- - **NUM_NODES** sets the number of nodes (minions).
-
-   Defaults to **2**.
- - **CHANNEL** sets the default CoreOS channel to be used in the VMs.
-
-   Defaults to **alpha**.
-
-   While by convenience, we allow an user to optionally consume CoreOS' *beta* or *stable* channels please do note that as both Kubernetes and CoreOS are quickly evolving platforms we only expect our setup to behave reliably on top of CoreOS' _alpha_ channel.
-   So, **before submitting a bug**, either in [this](https://github.com/pires/kubernetes-vagrant-coreos-cluster/issues) project, or in ([Kubernetes](https://github.com/GoogleCloudPlatform/kubernetes/issues) or [CoreOS](https://github.com/coreos/bugs/issues)) **make sure it** (also) **happens in the** (default) **_alpha_ channel** :smile:
- - **COREOS_VERSION** will set the specific CoreOS release (from the given channel) to be used.
-
-   Default is to use whatever is the **latest** one from the given channel.
- - **SERIAL_LOGGING** if set to *true* will allow logging from the VMs' serial console.
-
-   Defaults to **false**. Only use this if you *really* know what you are doing.
- - **MASTER_MEM** sets the master's VM memory.
-
-   Defaults to **1024** (in MB)
- - **MASTER_CPUS** sets the number os vCPUs to be used by the master's VM.
-
-   Defaults to **1**.
- - **NODE_MEM** sets the worker nodes' (aka minions in Kubernetes lingo) VM memory.
-
-   Defaults to **2048** (in MB)
- - **NODE_CPUS** sets the number os vCPUs to be used by the minions's VMs.
-
-   Defaults to **1**.
- - **DOCKERCFG** sets the location of your private docker repositories (and keys) configuration. However, this is only usable if you set **USE_DOCKERCFG=true**.
-
-   Defaults to "**~/.dockercfg**".
-
-   You can create/update a *~/.dockercfg* file at any time
-   by running `docker login <registry>.<domain>`. All nodes will get it automatically,
-   at 'vagrant up', given any modification or update to that file.
-
- - **DOCKER_OPTIONS** sets the additional `DOCKER_OPTS` for docker service on both master and the nodes. Useful for adding params such as `--insecure-registry`.
-
- - **KUBERNETES_VERSION** defines the specific kubernetes version being used.
-
-   Defaults to `1.0.3`.
-   Versions prior to `0.21.4` **won't work** with current cloud-config files.
-
- - **CLOUD_PROVIDER** defines the specific cloud provider being used. This is useful, for instance, if you're relying on kubernetes to set load-balancers for your services.
-
-   [Possible values are `gce`, `gke`, `aws`, `azure`, `vagrant`, `vsphere`, `libvirt-coreos` and `juju`](https://github.com/GoogleCloudPlatform/kubernetes/blob/master/cluster/kube-env.sh#L17). ~~Defaults to `vagrant`,~~ because of https://github.com/GoogleCloudPlatform/kubernetes/issues/9049.
-
-
-So, in order to start, say, a Kubernetes cluster with 3 minion nodes, 4GB of RAM and 2 vCPUs per node one just would do...
+There is optional shared folder setup.
+You can try it out by adding a section to your Vagrantfile like this.
 
 ```
-NODE_MEM=4096 NODE_CPUS=2 NUM_NODES=3 vagrant up
+config.vm.network "private_network", ip: "172.17.8.150"
+config.vm.synced_folder ".", "/home/core/share", id: "core", :nfs => true,  :mount_options   => ['nolock,vers=3,udp']
 ```
 
-**Please do note** that if you were using non default settings to startup your
-cluster you *must* also use those exact settings when invoking
-`vagrant {up,ssh,status,destroy}` to communicate with any of the nodes in the cluster as otherwise
-things may not behave as you'd expect.
+After a 'vagrant reload' you will be prompted for your local machine password.
 
-### Synced Folders
-You can automatically mount in your *guest* VMs, at startup, an arbitrary
-number of local folders in your host machine by populating accordingly the
-`synced_folders.yaml` file in your `Vagrantfile` directory. For each folder
-you which to mount the allowed syntax is...
+#### Provisioning with user-data
 
-```yaml
-# the 'id' of this mount point. needs to be unique.
-- name: foobar
-# the host source directory to share with the guest(s).
-  source: /foo
-# the path to mount ${source} above on guest(s)
-  destination: /bar
-# the mount type. only NFS makes sense as, presently, we are not shipping
-# hypervisor specific guest tools. defaults to `true`.
-  nfs: true
-# additional options to pass to the mount command on the guest(s)
-# if not set the Vagrant NFS defaults will be used.
-  mount_options: 'nolock,vers=3,udp,noatime'
-# if the mount is enabled or disabled by default. default is `true`.
-  disabled: false
-```
+The Vagrantfile will provision your CoreOS VM(s) with [coreos-cloudinit][coreos-cloudinit] if a `user-data` file is found in the project directory.
+coreos-cloudinit simplifies the provisioning process through the use of a script or cloud-config document.
 
-### Kubernetes Service-Account key file
+To get started, copy `user-data.sample` to `user-data` and make any necessary modifications.
+Check out the [coreos-cloudinit documentation][coreos-cloudinit] to learn about the available features.
 
-`kube-serviceaccount.key` file has been generated for the sake of simplicity of deployment. If you want to generate your own, run:
+[coreos-cloudinit]: https://github.com/coreos/coreos-cloudinit
+
+#### Configuration
+
+The Vagrantfile will parse a `config.rb` file containing a set of options used to configure your CoreOS cluster.
+See `config.rb.sample` for more information.
+
+## Cluster Setup
+
+Launching a CoreOS cluster on Vagrant is as simple as configuring `$num_instances` in a `config.rb` file to 3 (or more!) and running `vagrant up`.
+Make sure you provide a fresh discovery URL in your `user-data` if you wish to bootstrap etcd in your cluster.
+
+## New Box Versions
+
+CoreOS is a rolling release distribution and versions that are out of date will automatically update.
+If you want to start from the most up to date version you will need to make sure that you have the latest box file of CoreOS.
+Simply remove the old box file and vagrant will download the latest one the next time you `vagrant up`.
 
 ```
-openssl genrsa -out kube-serviceaccount.key 2048 2>/dev/null
+vagrant box remove coreos --provider vmware_fusion
+vagrant box remove coreos --provider vmware_workstation
+vagrant box remove coreos --provider virtualbox
 ```
 
-## TL;DR
+## Docker Forwarding
 
-```
-vagrant up
-source ~/.bash_profile
-```
+By setting the `$expose_docker_tcp` configuration value you can forward a local TCP port to docker on
+each CoreOS machine that you launch. The first machine will be available on the port that you specify
+and each additional machine will increment the port by 1.
 
-This will start one `master` and two `minion` nodes, download Kubernetes binaries start all needed services.
-A Docker mirror cache will be provisioned in the `master`, to speed up container provisioning. This can take some time depending on your Internet connection speed.
+Follow the [Enable Remote API instructions][coreos-enabling-port-forwarding] to get the CoreOS VM setup to work with port forwarding.
 
-Please do note that, at any time, you can change the number of `minions` by setting the `NUM_NODES` value in subsequent `vagrant up` invocations.
+[coreos-enabling-port-forwarding]: https://coreos.com/docs/launching-containers/building/customizing-docker/#enable-the-remote-api-on-a-new-socket
 
-### Usage
+Then you can then use the `docker` command from your local shell by setting `DOCKER_HOST`:
 
-Congratulations! You're now ready to use your Kubernetes cluster.
-
-If you just want to test something simple, start with [Kubernetes examples]
-(https://github.com/GoogleCloudPlatform/kubernetes/blob/master/examples/).
-
-For a more elaborate scenario [here]
-(https://github.com/pires/kubernetes-elasticsearch-cluster) you'll find all
-you need to get a scalable Elasticsearch cluster on top of Kubernetes in no
-time.
-
-## Troubleshooting
-
-#### I'm getting errors while waiting for Kubernetes master to become ready on a MacOS host!
-
-If you see something like this in the log:
-```
-==> master: Waiting for Kubernetes master to become ready...
-error: unable to load file "temp/dns-controller.yaml": unable to connect to a server to handle "replicationcontrollers": couldn't read version from server: Get https://10.245.1.2/api: dial tcp 10.245.1.2:443: i/o timeout
-error: no objects passed to create
-```
-You probably have a pre-existing Kubernetes config file on your system at `~/.kube/config`. Delete or move that file and try again.
-
-## Licensing
-
-This work is [open source](http://opensource.org/osd), and is licensed under the [Apache License, Version 2.0](http://opensource.org/licenses/Apache-2.0).
+    export DOCKER_HOST=tcp://localhost:2375
