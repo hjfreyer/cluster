@@ -17,7 +17,7 @@ spec:
       volumes:
         - name: blockchain
           hostPath:
-            path: /home/core/host/blockchain
+            path: /home/core/local/blockchain
       containers:
         - name: btcd
           image: hjfreyer/btcd:latest
