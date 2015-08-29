@@ -18,6 +18,9 @@ spec:
         - name: blockchain
           hostPath:
             path: /home/core/local/blockchain
+        - name: creds
+          secret:
+            secretName: btcd-creds
       containers:
         - name: btcd
           image: hjfreyer/btcd:latest
@@ -28,5 +31,6 @@ spec:
               containerPort: 8334
           volumeMounts:
             - name: blockchain
-              # mount path within the container
               mountPath: /btc/
+            - name: creds
+              mountPath: /creds/
