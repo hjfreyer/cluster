@@ -14,10 +14,11 @@ spec:
       labels:
         name: btcd
     spec:
+      activeDeadlineSeconds: 3600
       volumes:
         - name: blockchain
           hostPath:
-            path: /home/core/local/blockchain
+            path: /data/core/blockchain
         - name: creds
           secret:
             secretName: btcd-creds

@@ -7,6 +7,7 @@ Vagrant.require_version ">= 1.6.0"
 
 CLOUD_CONFIG_PATH = File.join(File.dirname(__FILE__), "user-data")
 K8S_PATH = File.join(File.dirname(__FILE__), "kubernetes.yaml")
+DATA_DISK_PATH = "/data/hjfreyer/node/disk.vdi"
 CONFIG = File.join(File.dirname(__FILE__), "config.rb")
 
 # Defaults for config options defined in CONFIG
@@ -119,6 +120,12 @@ Vagrant.configure("2") do |config|
         vb.gui = vm_gui
         vb.memory = vm_memory
         vb.cpus = vm_cpus
+
+        # # Create and attach disk
+        # unless File.exist?(DATA_DISK_PATH)
+        #   vb.customize ['createhd', '--filename', DATA_DISK_PATH, '--format', 'VDI', '--size', 200 * 1024] # 200G
+        # end
+        vb.customize ['storageattach', :id, '--storagectl', 'IDE Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', DATA_DISK_PATH]
       end
 
       ip = "172.17.8.#{i+100}"

@@ -17,7 +17,7 @@ spec:
       volumes:
         - name: datadir
           hostPath:
-            path: /home/core/host/btc
+            path: /data/core/btc_classic
       containers:
         - name: bitcoind
           image: hjfreyer/btc:latest

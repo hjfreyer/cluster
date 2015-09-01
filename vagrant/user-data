@@ -2,6 +2,14 @@
 
 coreos:
   units:
+    - name: data.mount
+      command: start
+      content: |
+        [Mount]
+        What=/dev/disk/by-uuid/e26e2f5d-50c7-4932-90d5-05e9477f2be0
+        Where=/data/
+        Type=ext4
+
     - name: kubelet.service
       command: start
       enable: true
