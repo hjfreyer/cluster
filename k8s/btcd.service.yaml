@@ -1,16 +1,19 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: btcd
+  name: btcsuite
 spec:
   ports:
-    - name: rpc
-      port: 8334
-      nodePort: 31334
+    - name: walletrpc
+      port: 8332
+      nodePort: 31332
     - name: p2p
       port: 8333
       nodePort: 31333
+    - name: rpc
+      port: 8334
+      nodePort: 31334
   selector:
-    name: btcd
+    cluster: btcsuite
   type: NodePort
   

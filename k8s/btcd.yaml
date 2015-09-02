@@ -13,12 +13,16 @@ spec:
     metadata:
       labels:
         name: btcd
+        cluster: btcsuite
     spec:
       activeDeadlineSeconds: 3600
       volumes:
         - name: blockchain
           hostPath:
             path: /data/core/blockchain
+        - name: wallet
+          hostPath:
+            path: /home/core/host/btcwallet
         - name: creds
           secret:
             secretName: btcd-creds
@@ -32,6 +36,16 @@ spec:
               containerPort: 8334
           volumeMounts:
             - name: blockchain
+              mountPath: /btc/
+            - name: creds
+              mountPath: /creds/
+        - name: btcwallet
+          image: hjfreyer/btcwallet:latest
+          ports:
+            - name: walletrpc
+              containerPort: 8332
+          volumeMounts:
+            - name: wallet
               mountPath: /btc/
             - name: creds
               mountPath: /creds/
