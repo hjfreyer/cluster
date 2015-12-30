@@ -44,6 +44,7 @@ func (c *context) RunAll() {
 		if err := cmd.Start(); err != nil {
 			log.Fatal(err)
 		}
+		cmds = append(cmds, cmd)
 	}
 
 	for _, cmd := range cmds {
