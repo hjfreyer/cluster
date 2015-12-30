@@ -13,7 +13,7 @@ var cache = flag.Bool("cache", true, "Whether to use the docker cache for builds
 var push = flag.Bool("push", false, "Whether to push the built versions")
 
 var defaultPackages = []string{
-	"btc",
+	"btcwallet",
 	"btcd",
 	"ddclient",
 	"nginx",
@@ -22,6 +22,7 @@ var defaultPackages = []string{
 var bases = []string{
 	"debian:jessie",
 	"debian:sid",
+	"golang:latest",
 }
 
 func doPull(name string) error {

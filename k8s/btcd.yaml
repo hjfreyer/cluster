@@ -15,7 +15,6 @@ spec:
         name: btcd
         cluster: btcsuite
     spec:
-      activeDeadlineSeconds: 3600
       volumes:
         - name: blockchain
           hostPath:
@@ -29,6 +28,7 @@ spec:
       containers:
         - name: btcd
           image: hjfreyer/btcd:latest
+          args: ["--notls", "--rpclisten=127.0.0.1:8334"]
           ports:
             - name: p2p
               containerPort: 8333
@@ -41,6 +41,7 @@ spec:
               mountPath: /creds/
         - name: btcwallet
           image: hjfreyer/btcwallet:latest
+          args: ["--noclienttls"]
           ports:
             - name: walletrpc
               containerPort: 8332
