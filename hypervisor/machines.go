@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -52,7 +53,10 @@ var Coreos = &Machine{
 	Name:     "coreos",
 	MemoryMb: 1024,
 	Mac:      "96:03:08:82:1C:02",
-	Disks:    []*Disk{{"main"}},
+	Disks: []*Disk{
+		{"main"},
+		{"data"},
+	},
 }
 
 var Machines = []*Machine{Leibniz, Coreos}
@@ -139,13 +143,33 @@ func InitCoreos(tmpdir string) error {
 		exec.Command(nbdBin, "-d", devPath).Run()
 	}()
 
+	// Janky as hell.
+	time.Sleep(2 * time.Second)
+
+	// Find the root partition.
+	blkidOut, err := exec.Command("blkid", "-t", "LABEL=ROOT", "-o", "device").Output()
+	if err != nil {
+		return err
+	}
+
+	partDev := ""
+	for _, dev := range strings.Split(string(blkidOut), "\n") {
+		if strings.HasPrefix(dev, devPath) {
+			partDev = dev
+			break
+		}
+	}
+	if partDev == "" {
+		return errors.New("could not find root partition")
+	}
+
 	// Mount the disk
 	mntPath := path.Join(tmpdir, "nbdmnt")
 	if err := os.Mkdir(mntPath, 0777); err != nil {
 		return err
 	}
 
-	mntCmd := exec.Command("mount", devPath, mntPath)
+	mntCmd := exec.Command("mount", string(partDev), mntPath)
 	redirect(mntCmd)
 	if err := mntCmd.Run(); err != nil {
 		return err
@@ -154,7 +178,7 @@ func InitCoreos(tmpdir string) error {
 		exec.Command("umount", mntPath).Run()
 	}()
 
-	cloudConfigDest := path.Join(mntPath, "var/lib/coreos-install")
+	cloudConfigDest := path.Join(mntPath, "var/lib/coreos-install/user_data")
 	if err := os.MkdirAll(path.Dir(cloudConfigDest), 0777); err != nil {
 		return err
 	}

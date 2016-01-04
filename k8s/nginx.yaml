@@ -15,9 +15,6 @@ spec:
         name: nginx
     spec:
       volumes:
-        - name: "host"
-          hostPath:
-            path: "/home/core/host"
         - name: "certs"
           secret:
             secretName: sslcerts
@@ -29,7 +26,5 @@ spec:
             - containerPort: 443
 
           volumeMounts:
-            - mountPath: "/host"
-              name: "host"
             - mountPath: "/certs"
               name: "certs"

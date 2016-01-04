@@ -17,7 +17,7 @@ spec:
       volumes:
         - name: host
           hostPath:
-            path: /home/core/host/transmission
+            path: /data/transmission
       containers:
         - name: transmission
           image: hjfreyer/transmission:latest
