@@ -1,18 +1,21 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/nightlyone/lockfile"
 )
 
 const (
@@ -28,14 +31,10 @@ const (
 )
 
 type Machine struct {
-	Name     string
-	MemoryMb int
-	Mac      string
-	Disks    []*Disk
-}
-
-type Disk struct {
-	Name string
+	Name      string
+	MemoryMb  int
+	Mac       string
+	DiskNames []string
 }
 
 type MachineSet struct {
@@ -43,20 +42,17 @@ type MachineSet struct {
 }
 
 var Leibniz = &Machine{
-	Name:     "leibniz",
-	MemoryMb: 1024,
-	Mac:      "96:03:08:82:1C:01",
-	Disks:    []*Disk{{"main"}},
+	Name:      "leibniz",
+	MemoryMb:  1024,
+	Mac:       "96:03:08:82:1C:01",
+	DiskNames: []string{"main"},
 }
 
 var Coreos = &Machine{
-	Name:     "coreos",
-	MemoryMb: 1024,
-	Mac:      "96:03:08:82:1C:02",
-	Disks: []*Disk{
-		{"main"},
-		{"data"},
-	},
+	Name:      "coreos",
+	MemoryMb:  1024,
+	Mac:       "96:03:08:82:1C:02",
+	DiskNames: []string{"main", "data", "blockchain"},
 }
 
 var Machines = []*Machine{Leibniz, Coreos}
@@ -70,32 +66,109 @@ func GetMachine(name string) *Machine {
 	return nil
 }
 
-func getCloudConfigHash() string {
-	hash := sha256.Sum256(MustAsset(cloudConfigPath))
-	return hex.EncodeToString(hash[:])
-}
+func LockMachine(m *Machine) (func(), error) {
+	lf, err := lockfile.New(path.Join(baseDir, m.Name, "lock"))
+	nilfn := func() { return }
+	if err != nil {
+		return nilfn, err
+	}
+	if err := lf.TryLock(); err != nil {
+		return nilfn, err
+	}
 
-func Ready(m *Machine) (bool, error) {
-	for i := 0; i < len(m.Disks); i++ {
-		if exists, err := DiskExists(m, i); err != nil {
-			return false, err
-		} else if !exists {
-			return false, nil
+	unlock := func() {
+		if err := lf.Unlock(); err != nil {
+			log.Print("Error unlocking file: ", err)
 		}
 	}
-	return true, nil
+
+	return unlock, nil
 }
 
-func DiskExists(m *Machine, index int) (bool, error) {
-	if _, err := os.Stat(diskPath(m, index)); os.IsNotExist(err) {
-		return false, nil
-	} else if err != nil {
-		return false, err
+type DiskId struct {
+	ChainIdx int
+	LinkIdx  int
+}
+
+var (
+	diskNameRe = regexp.MustCompile(`^chain-(\d{5})-link-(\d{5}).qcow2$`)
+)
+
+func ParseDiskPath(path string) (DiskId, error) {
+	group := diskNameRe.FindStringSubmatch(path)
+	if group == nil {
+		return DiskId{}, fmt.Errorf("invalid path %q", path)
 	}
-	return true, nil
+	chain, err := strconv.Atoi(group[1])
+	if err != nil {
+		return DiskId{}, err
+	}
+	link, err := strconv.Atoi(group[2])
+	if err != nil {
+		return DiskId{}, err
+	}
+	return DiskId{chain, link}, nil
+}
+
+type byChainAndLink []DiskId
+
+func (b byChainAndLink) Len() int      { return len(b) }
+func (b byChainAndLink) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
+func (b byChainAndLink) Less(i, j int) bool {
+	if b[i].ChainIdx != b[j].ChainIdx {
+		return b[i].ChainIdx < b[j].ChainIdx
+	}
+	return b[i].LinkIdx < b[j].LinkIdx
+}
+
+func LatestDisk(m *Machine, didx int) (string, error) {
+	diskDir := path.Join(baseDir, m.Name, m.DiskNames[didx])
+	files, err := ioutil.ReadDir(diskDir)
+	if err != nil {
+		return "", err
+	}
+
+	parsed := make([]DiskId, len(files))
+	for i, f := range files {
+		parsed[i], err = ParseDiskPath(f.Name())
+		if err != nil {
+			return "", err
+		}
+	}
+
+	sort.Sort(byChainAndLink(parsed))
+
+	if len(parsed) == 0 {
+		return "", errors.New("No files in disk directory")
+	}
+
+	prev := parsed[0]
+	prev.LinkIdx--
+	for _, disk := range parsed {
+		if (prev.ChainIdx == disk.ChainIdx && prev.LinkIdx+1 == disk.LinkIdx) || (prev.ChainIdx+1 == disk.ChainIdx) {
+			prev = disk
+		} else {
+			return "", errors.New("Missing disk file!")
+		}
+	}
+	return path.Join(diskDir, fmt.Sprintf("chain-%05d-link-%05d.qcow2", prev.ChainIdx, prev.LinkIdx)), nil
+}
+
+func Ready(m *Machine) error {
+	for i := 0; i < len(m.DiskNames); i++ {
+		_, err := LatestDisk(m, i)
+		return err
+	}
+	return nil
 }
 
 func Run(m *Machine) error {
+	unlock, err := LockMachine(m)
+	if err != nil {
+		return err
+	}
+	defer unlock()
+
 	args := []string{
 		"-enable-kvm",
 		"-nographic",
@@ -104,9 +177,13 @@ func Run(m *Machine) error {
 		"-net", "bridge,br=br0",
 	}
 
-	for i := range m.Disks {
+	for i := range m.DiskNames {
+		latestPath, err := LatestDisk(m, i)
+		if err != nil {
+			return err
+		}
 		args = append(args, "-drive",
-			fmt.Sprintf("file=%s,index=%d,media=disk", diskPath(m, i), i))
+			fmt.Sprintf("file=%s,index=%d,media=disk", latestPath, i))
 	}
 
 	cmd := exec.Command(qemuBin, args...)
@@ -122,12 +199,9 @@ func redirect(cmd *exec.Cmd) {
 }
 
 func InitCoreos(tmpdir string) error {
-	disk := diskPath(Coreos, 0)
-
-	if exists, err := DiskExists(Coreos, 0); err != nil {
+	disk, err := LatestDisk(Coreos, 0)
+	if err != nil {
 		return err
-	} else if !exists {
-		return errors.New("Disk does not exist")
 	}
 
 	// Install the virtual disk.
@@ -229,9 +303,9 @@ func InitCoreos(tmpdir string) error {
 // 	return installCmd.Run()
 // }
 
-func diskPath(m *Machine, index int) string {
-	return path.Join(baseDir, m.Name, m.Disks[index].Name+diskSuffix)
-}
+// func diskPath(m *Machine, index int) string {
+// 	return path.Join(baseDir, m.Name, m.Disks[index].Name+diskSuffix)
+// }
 
 // NOTE: Code stolen from ioutil/tempfile.go
 //

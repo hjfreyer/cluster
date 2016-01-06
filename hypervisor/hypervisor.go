@@ -144,12 +144,9 @@ func (c *command) parseMachine(ctx *cli.Context) *Machine {
 
 func (c *command) status(ctx *cli.Context) {
 	machine := c.parseMachine(ctx)
-	ready, err := Ready(machine)
+	err := Ready(machine)
 	if err != nil {
 		log.Fatal(err)
-	}
-	if !ready {
-		log.Fatal("Machine not ready")
 	}
 }
 
@@ -165,12 +162,9 @@ func (c *command) init(ctx *cli.Context) {
 
 func (c *command) run(ctx *cli.Context) {
 	machine := c.parseMachine(ctx)
-	ready, err := Ready(machine)
+	err := Ready(machine)
 	if err != nil {
 		log.Fatal(err)
-	}
-	if !ready {
-		log.Fatal("Machine not ready")
 	}
 	log.Fatal(Run(machine))
 }
