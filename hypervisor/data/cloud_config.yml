@@ -12,15 +12,13 @@ coreos:
         What=/dev/disk/by-uuid/8cb79d79-7a82-4263-98fb-192d6311618a
         Where=/data/
         Type=ext4
-
-    # - name: 00-eth2.network
-    #   runtime: true
-    #   content: |        
-    #     [Match]
-    #     Name=eth2
-
-    #     [Network]
-    #     DHCP=yes
+    - name: mnt-blockchain.mount
+      command: start
+      content: |
+        [Mount]
+        What=/dev/disk/by-uuid/9027dd4b-ae81-4308-934a-3671d82619ab
+        Where=/mnt/blockchain/
+        Type=ext4
 
     - name: kubelet.service
       command: start
