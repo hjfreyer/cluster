@@ -25,6 +25,11 @@ var bases = []string{
 	"golang:latest",
 }
 
+type result struct {
+	key string
+	err error
+}
+
 func doPull(name string) error {
 	cmd := exec.Command("docker", "pull", name)
 	cmd.Stdout = os.Stdout
@@ -48,24 +53,39 @@ func doBuildAndPush(name string) error {
 	return nil
 }
 
-type Task func() error
+type Task struct {
+	key string
+	op  func() error
+}
 
-func doAll(tasks []Task) error {
-	ch := make(chan error)
+func doAll(tasks []Task) []result {
+	ch := make(chan result)
 	for _, task := range tasks {
 		task := task
 		go func() {
-			ch <- task()
+			ch <- result{task.key, task.op()}
 		}()
 	}
 
-	var result error
+	var res []result
 	for _ = range tasks {
-		if err := <-ch; err != nil {
-			result = err
+		res = append(res, <-ch)
+	}
+	return res
+}
+
+func logResults(res []result) error {
+	var err error
+	for _, r := range res {
+		if r.err == nil {
+			log.Print(r.key + ": SUCCESS")
+		} else {
+			log.Print(r.key + ": FAIL")
+			log.Print(r.err)
+			err = r.err
 		}
 	}
-	return result
+	return err
 }
 
 func main() {
@@ -79,23 +99,28 @@ func main() {
 		var pulls []Task
 		for _, p := range bases {
 			p := p
-			pulls = append(pulls, func() error {
-				return doPull(p)
-			})
+			pulls = append(pulls, Task{
+				key: "Pulling " + p,
+				op: func() error {
+					return doPull(p)
+				}})
 		}
-		if err := doAll(pulls); err != nil {
-			log.Fatal(err)
+		if anyErr := logResults(doAll(pulls)); anyErr != nil {
+			log.Fatal("Not all pulls succeeded.")
 		}
 	}
 
 	var builds []Task
 	for _, p := range packages {
 		p := p
-		builds = append(builds, func() error {
-			return doBuildAndPush(p)
-		})
+		builds = append(builds, Task{
+			key: "Build and/or push " + p,
+			op: func() error {
+				return doBuildAndPush(p)
+			}})
 	}
-	if err := doAll(builds); err != nil {
-		log.Fatal(err)
+
+	if anyErr := logResults(doAll(builds)); anyErr != nil {
+		log.Fatal("Not all build/pulls succeeded.")
 	}
 }
