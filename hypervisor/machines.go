@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	baseDir    = "/virt/"
+	baseDir    = "/data/virt/"
 	diskSuffix = ".qcow2"
 
 	qemuBin    = "/usr/bin/qemu-system-x86_64"
@@ -43,14 +43,14 @@ type MachineSet struct {
 
 var Leibniz = &Machine{
 	Name:      "leibniz",
-	MemoryMb:  1024,
+	MemoryMb:  7000,
 	Mac:       "96:03:08:82:1C:01",
 	DiskNames: []string{"main"},
 }
 
 var Coreos = &Machine{
 	Name:      "coreos",
-	MemoryMb:  1024,
+	MemoryMb:  7000,
 	Mac:       "96:03:08:82:1C:02",
 	DiskNames: []string{"main", "data", "blockchain"},
 }
