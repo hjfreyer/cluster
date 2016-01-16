@@ -18,10 +18,11 @@ spec:
       volumes:
         - name: blockchain
           hostPath:
-            path: /data/core/blockchain
+            path: /mnt/blockchain/blockchain/
         - name: wallet
-          hostPath:
-            path: /home/core/host/btcwallet
+          nfs:
+            server: "192.168.1.2"
+            path: "/data/hjfreyer/node/btcwallet"
         - name: creds
           secret:
             secretName: btcd-creds
