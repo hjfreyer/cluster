@@ -52,7 +52,7 @@ var Coreos = &Machine{
 	Name:      "coreos",
 	MemoryMb:  7000,
 	Mac:       "96:03:08:82:1C:02",
-	DiskNames: []string{"main", "data", "blockchain"},
+	DiskNames: []string{"main", "data", "blockchain", "personal"},
 }
 
 var Machines = []*Machine{Leibniz, Coreos}
