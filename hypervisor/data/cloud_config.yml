@@ -42,8 +42,7 @@ coreos:
         WantedBy=multi-user.target
 write_files:
   - path: '/etc/kubernetes/manifests/kubernetes.yaml'
-    content: |
-      
+    content: |      
       apiVersion: v1
       kind: Pod
       metadata: 
@@ -82,7 +81,7 @@ write_files:
               - mountPath: /var/lib/etcd
                 name: "etcd-datadir"
           - name: "kube-apiserver"
-            image: "b.gcr.io/kuar/kube-apiserver:1.0.3"
+            image: "b.gcr.io/kuar/kube-apiserver:1.2.0"
             args: 
               - "--allow-privileged=true"
               - "--etcd-servers=http://127.0.0.1:2379"
@@ -95,17 +94,17 @@ write_files:
               - mountPath: /var/run/kubernetes
                 name: "var-run-kubernetes"
           - name: "kube-controller-manager"
-            image: "b.gcr.io/kuar/kube-controller-manager:1.0.3"
+            image: "b.gcr.io/kuar/kube-controller-manager:1.2.0"
             args: 
               - "--master=http://127.0.0.1:8080"
               - "--v=2"
           - name: "kube-scheduler"
-            image: "b.gcr.io/kuar/kube-scheduler:1.0.3"
+            image: "b.gcr.io/kuar/kube-scheduler:1.2.0"
             args:
               - "--master=http://127.0.0.1:8080"
               - "--v=2"
           - name: "kube-proxy"
-            image: "b.gcr.io/kuar/kube-proxy:1.0.3"
+            image: "b.gcr.io/kuar/kube-proxy:1.2.0"
             args:
               - "--master=http://127.0.0.1:8080"
               - "--v=2"
