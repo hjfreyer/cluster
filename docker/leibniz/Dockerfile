@@ -12,7 +12,10 @@ RUN apt-get update && \
   openssh-server \
   apache2 \
   supervisor \
-  docker.io \
+  docker.io
+
+RUN echo "hjfreyer:foo" | chpasswd
+RUN mkdir -p /var/run/sshd
 
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 

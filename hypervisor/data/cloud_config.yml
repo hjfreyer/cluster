@@ -19,6 +19,13 @@ coreos:
         What=/dev/disk/by-uuid/9027dd4b-ae81-4308-934a-3671d82619ab
         Where=/mnt/blockchain/
         Type=ext4
+    - name: mnt-personal.mount
+      command: start
+      content: |
+        [Mount]
+        What=/dev/disk/by-uuid/e8e013b9-dce1-42a8-818c-8d640e67b2c1
+        Where=/mnt/personal/
+        Type=ext4
 
     - name: kubelet.service
       command: start
@@ -42,12 +49,12 @@ coreos:
         WantedBy=multi-user.target
 write_files:
   - path: '/etc/kubernetes/manifests/kubernetes.yaml'
-    content: |      
+    content: |
       apiVersion: v1
       kind: Pod
-      metadata: 
+      metadata:
         name: kube-controller
-      spec: 
+      spec:
         hostNetwork: true
         volumes:
           - name: "etc-kubernetes"
@@ -68,10 +75,10 @@ write_files:
           - name: "lib64"
             hostPath:
               path: "/lib64"
-        containers: 
+        containers:
           - name: "etcd"
             image: "b.gcr.io/kuar/etcd:2.1.1"
-            args: 
+            args:
               - "--data-dir=/var/lib/etcd"
               - "--advertise-client-urls=http://127.0.0.1:2379"
               - "--listen-client-urls=http://127.0.0.1:2379"
@@ -82,7 +89,7 @@ write_files:
                 name: "etcd-datadir"
           - name: "kube-apiserver"
             image: "b.gcr.io/kuar/kube-apiserver:1.2.0"
-            args: 
+            args:
               - "--allow-privileged=true"
               - "--etcd-servers=http://127.0.0.1:2379"
               - "--insecure-bind-address=0.0.0.0"
@@ -95,7 +102,7 @@ write_files:
                 name: "var-run-kubernetes"
           - name: "kube-controller-manager"
             image: "b.gcr.io/kuar/kube-controller-manager:1.2.0"
-            args: 
+            args:
               - "--master=http://127.0.0.1:8080"
               - "--v=2"
           - name: "kube-scheduler"
