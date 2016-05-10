@@ -135,19 +135,11 @@ func (c *command) parseMachine(ctx *cli.Context) *Machine {
 	if name == "" {
 		log.Fatal("Must specify a <machine>")
 	}
-	m := GetMachine(ctx.Args().Get(0))
+	m := Repo.GetMachine(ctx.Args().Get(0))
 	if m == nil {
 		log.Fatalf("No machine named %q", name)
 	}
 	return m
-}
-
-func (c *command) status(ctx *cli.Context) {
-	machine := c.parseMachine(ctx)
-	err := Ready(machine)
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func (c *command) init(ctx *cli.Context) {
@@ -162,10 +154,6 @@ func (c *command) init(ctx *cli.Context) {
 
 func (c *command) run(ctx *cli.Context) {
 	machine := c.parseMachine(ctx)
-	err := Ready(machine)
-	if err != nil {
-		log.Fatal(err)
-	}
 	log.Fatal(Run(machine))
 }
 
@@ -180,10 +168,6 @@ func main() {
 
 	app := cli.NewApp()
 	app.Commands = []cli.Command{
-		{
-			Name:   "status",
-			Action: c.status,
-		},
 		{
 			Name:   "init",
 			Action: c.init,
