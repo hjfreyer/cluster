@@ -20,7 +20,18 @@ spec:
             secretName: ddclient-creds
       containers:
         - name: ddclient
-          image: hjfreyer/ddclient:latest
+          image: localhost:31111/ddclient:latest
           volumeMounts:
             - mountPath: "/creds"
               name: creds
+          env:
+            - name: USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ddclient-creds
+                  key: username
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ddclient-creds
+                  key: password
