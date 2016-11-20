@@ -7,11 +7,7 @@ spec:
     - name: rpc
       port: 8332
       nodePort: 30332
-    - name: p2p
-      port: 8333
-      nodePort: 30333
   selector:
-    name: btc
+    name: btcd
   type: NodePort
   
-

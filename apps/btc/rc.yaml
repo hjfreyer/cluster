@@ -13,23 +13,23 @@ spec:
     metadata:
       labels:
         name: btcd
-        cluster: btcsuite
     spec:
       volumes:
         - name: blockchain
           hostPath:
-            path: /mnt/blockchain/blockchain/
-        - name: wallet
-          nfs:
-            server: "192.168.1.2"
-            path: "/data/hjfreyer/node/btcwallet"
+            path: /local/blockchain/
+        - name: wallet-source
+          hostPath:
+            path: /data/btc/wallet-source
+        - name: wallet-local
+          hostPath:
+            path: /local/btcwallet/
         - name: creds
           secret:
-            secretName: btcd-creds
+            secretName: btc-creds
       containers:
         - name: btcd
-          image: hjfreyer/btcd:latest
-          args: ["--notls", "--rpclisten=127.0.0.1:8334"]
+          image: localhost:31111/btcd:latest
           ports:
             - name: p2p
               containerPort: 8333
@@ -41,13 +41,14 @@ spec:
             - name: creds
               mountPath: /creds/
         - name: btcwallet
-          image: hjfreyer/btcwallet:latest
-          args: ["--noclienttls"]
+          image: localhost:31111/btcwallet:latest
           ports:
             - name: walletrpc
               containerPort: 8332
           volumeMounts:
-            - name: wallet
-              mountPath: /btc/
+            - name: wallet-local
+              mountPath: /wallet/
+            - name: wallet-source
+              mountPath: /source/
             - name: creds
               mountPath: /creds/
