@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: tor
+spec:
+  ports:
+    - name: socks
+      port: 9000
+      nodePort: 30000
+    - name: tor
+      port: 9001
+      nodePort: 30001
+  selector:
+    name: tor
+  type: NodePort
+  
