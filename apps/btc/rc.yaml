@@ -29,7 +29,9 @@ spec:
             secretName: btc-creds
       containers:
         - name: btcd
-          image: localhost:31111/btcd:latest
+          image: localhost:31111/btc:latest
+          args:
+            - btcd
           ports:
             - name: p2p
               containerPort: 8333
@@ -41,7 +43,9 @@ spec:
             - name: creds
               mountPath: /creds/
         - name: btcwallet
-          image: localhost:31111/btcwallet:latest
+          image: localhost:31111/btc:latest
+          args:
+            - btcwallet
           ports:
             - name: walletrpc
               containerPort: 8332
