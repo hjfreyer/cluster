@@ -31,10 +31,12 @@ case "$machine" in
 	exec "$QEMU" \
 	     -enable-kvm \
 	     -nographic \
-	     -m 8G \
+	     -smp 2 \
+	     -m 12G \
 	     -net nic,macaddr=96:03:08:82:1C:02 \
 	     -net bridge,br=br0 \
 	     -drive file=/disks/coreos.qcow2,index=0,media=disk \
+	     -drive file=/data/nobackup/disks/coreos-local.qcow2,index=1,media=disk \
 	     -fsdev local,security_model=passthrough,id=fsdev0,path=/data \
 	     -device virtio-9p-pci,id=fs0,fsdev=fsdev0,mount_tag=hostdata
 	;;
